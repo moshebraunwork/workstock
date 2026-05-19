@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String     @id @default(uuid())
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  employees Employee[]
+  jobs      Job[]
+  items     Item[]
+
+  @@map("companies")
+}
+
+model Employee {
+  id        String    @id // format: EMP-####, per company
+  companyId String
+  name      String
+  email     String
+  phone     String    // digits only
+  status    String    @default("active") // "active" | "inactive"
+  hireDate  DateTime?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, email]) // unique within a company
+  @@index([companyId])
+  @@map("employees")
+}
+
+model Item {
+  id          String   @id // format: ITM-####, per company
+  companyId   String
+  name        String
+  description String?
+  cost        Decimal  @db.Decimal(10, 2)
+  size        Int      // 1-100 scale
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("items")
+}
+
+model Job {
+  id             String     @id // format: mmyy####
+  companyId      String
+  ownerName      String
+  phone          String
+  homeAddress    String
+  notes          String?
+  scheduledStart DateTime?
+  scheduledEnd   DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  company        Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  estimates      Estimate[]
+
+  @@index([companyId])
+  @@map("jobs")
+}
+
+model Estimate {
+  id        String   @id @default(uuid())
+  jobId     String
+  amount    Decimal  @db.Decimal(10, 2)
+  note      String?
+  createdAt DateTime @default(now())
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId, createdAt])
+  @@map("estimates")
+}
+
+// Per-month counter for generating job IDs (mmyy####)
+model JobIdCounter {
+  monthKey String @id // format: "mmyy"
+  lastSeq  Int    @default(0)
+
+  @@map("job_id_counters")
+}
+
+// Per-company counter for generating employee IDs (EMP-####)
+model EmployeeIdCounter {
+  companyId String @id
+  lastSeq   Int    @default(0)
+
+  @@map("employee_id_counters")
+}
+
+// Per-company counter for generating item IDs (ITM-####)
+model ItemIdCounter {
+  companyId String @id
+  lastSeq   Int    @default(0)
+
+  @@map("item_id_counters")
+}
