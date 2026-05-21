@@ -23,7 +23,7 @@ model Employee {
   id        String    @id // format: EMP-####, per company
   companyId String
   name      String
-  email     String
+  email     String    @unique
   phone     String    // digits only
   status    String    @default("active") // "active" | "inactive"
   hireDate  DateTime?
@@ -32,7 +32,6 @@ model Employee {
   updatedAt DateTime  @updatedAt
   company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  @@unique([companyId, email]) // unique within a company
   @@index([companyId])
   @@map("employees")
 }

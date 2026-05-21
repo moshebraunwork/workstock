@@ -1,18 +1,22 @@
 import { prisma } from './db.js';
 
 export async function requireCompany(req, res, next) {
-  const companyId = req.header('x-company-id');
-  if (!companyId) {
-    return res.status(401).json({
-      error: 'Missing x-company-id header',
-    });
+  const email = req.header('x-user-email');
+  if (!email) {
+    return res.status(401).json({ error: 'Missing x-user-email header' });
   }
   try {
-    const company = await prisma.company.findUnique({ where: { id: companyId } });
-    if (!company) {
-      return res.status(404).json({ error: 'Company not found' });
+    const employee = await prisma.employee.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      include: { company: true },
+    });
+    if (!employee) {
+      return res.status(401).json({
+        error: 'Email not found — register this email with a company first',
+      });
     }
-    req.company = company;
+    req.company = employee.company;
+    req.employee = employee;
     next();
   } catch (err) {
     next(err);
