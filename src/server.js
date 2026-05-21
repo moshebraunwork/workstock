@@ -1,13 +1,19 @@
 import 'dotenv/config';
 import express from 'express';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { prisma } from './db.js';
 import { jobsRouter } from './jobs.js';
 import { employeesRouter } from './employees.js';
 import { companiesRouter } from './companies.js';
 import { itemsRouter } from './items.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const app = express();
 app.use(express.json());
+app.use(express.static(join(__dirname, '..', 'public')));
 
 // Health check
 app.get('/health', async (req, res) => {

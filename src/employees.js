@@ -104,7 +104,7 @@ employeesRouter.post('/', async (req, res, next) => {
   } catch (err) {
     if (err.status) return res.status(err.status).json({ error: err.message });
     if (err.code === 'P2002') {
-      return res.status(409).json({ error: 'An employee with that email already exists in this company' });
+      return res.status(409).json({ error: 'That email is already registered to a company' });
     }
     next(err);
   }
@@ -152,7 +152,7 @@ employeesRouter.patch('/:id', async (req, res, next) => {
   } catch (err) {
     if (err.status) return res.status(err.status).json({ error: err.message });
     if (err.code === 'P2002') {
-      return res.status(409).json({ error: 'An employee with that email already exists in this company' });
+      return res.status(409).json({ error: 'That email is already registered to a company' });
     }
     next(err);
   }
